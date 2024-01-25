@@ -1,2 +1,4 @@
 // the configured options and settings for Tutorial
 // TODO 10: Define Tutorial_VERSION_MAJOR and Tutorial_VERSION_MINOR
+#define Tutorial_step1_VERSION_MAJOR @Tutorial_step1_VERSION_MAJOR@
+#define Tutorial_step1_VERSION_MINOR @Tutorial_step1_VERSION_MINOR@

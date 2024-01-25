@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.10)
 
 # set the project name and version
-project(Tutorial VERSION 1.0)
+project(Tutorial_step3 VERSION 1.0)
 
 # TODO 4: Replace the following code by:
 # * Creating an interface library called tutorial_compiler_flags
@@ -24,17 +24,17 @@ add_subdirectory(MathFunctions)
 list(APPEND EXTRA_INCLUDES "${PROJECT_SOURCE_DIR}/MathFunctions")
 
 # add the executable
-add_executable(Tutorial tutorial.cxx)
+add_executable(Tutorial_step3 tutorial.cxx)
 
 # TODO 5: Link Tutorial to tutorial_compiler_flags
 
-target_link_libraries(Tutorial PUBLIC MathFunctions)
+target_link_libraries(Tutorial_step3 PUBLIC MathFunctions)
 
 # TODO 3: Remove use of EXTRA_INCLUDES
 
 # add the binary tree to the search path for include files
 # so that we will find TutorialConfig.h
-target_include_directories(Tutorial PUBLIC
+target_include_directories(Tutorial_step3 PUBLIC
                            "${PROJECT_BINARY_DIR}"
                            ${EXTRA_INCLUDES}
                            )
