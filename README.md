@@ -21,4 +21,10 @@ provides the complete solution for the previous step.
 - target_compile_definitions用法
 
 ## step3 Adding Usage Requirements for a Library
+- CMAKE_CURRENT_SOURCE_DIR 用法如下；
+- target_include_directories(target INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}), Remember INTERFACE means things that consumers require but the producer doesn't.
+- target_compile_features(target INTERFACE cxx_std_11)作为link接口，要求consumer使用这个feature但producer不要求
 
+## step4 Adding Generator Expressions
+- $<0:...> 逻辑false产生空字符串
+- $<1:...> 逻辑ture则等于后面的...字符串
