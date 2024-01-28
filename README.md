@@ -26,5 +26,62 @@ provides the complete solution for the previous step.
 - target_compile_features(target INTERFACE cxx_std_11)作为link接口，要求consumer使用这个feature但producer不要求
 
 ## step4 Adding Generator Expressions
-- $<0:...> 逻辑false产生空字符串
-- $<1:...> 逻辑ture则等于后面的...字符串
+- $\<0:...> 逻辑false产生空字符串
+- $\<1:...> 逻辑ture则等于后面的...字符串
+
+## step5 Installing and Testing
+- install(TARGETS ...)
+- install(FILES ...)
+- enable_testing()
+- add_test(NAME ... COMMAND ...)
+- set_test_properties(name PROPERTIES PASS_REGULAR_EXPRESSION ...)
+- function(name arg0 arg1 ...)
+
+## step6 Adding Support for a Testing Dashboard
+- 编写CTestConfig.cmake
+- remove enable_test()
+- include(CTest)
+
+## step7 Adding System Introspection
+
+- include(CheckCXXSourceCompiles)
+
+- ```cmake
+  check_cxx_source_compiles("
+      #include <cmath>
+      int main() {
+        std::log(1.0);
+        return 0;
+      }
+    " HAVE_LOG)
+  ```
+
+## step8 Adding a Custom Command and Generated File
+
+- ```cmake
+  add_custom_command(
+    OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/Table.h
+    COMMAND MakeTable ${CMAKE_CURRENT_BINARY_DIR}/Table.h
+    DEPENDS MakeTable
+    )
+  ```
+
+## step9 Packaging an Installer
+
+- top cmakelists.txt include blow code
+
+```cmake
+include(InstallRequiredSystemLibraries)
+set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/License.txt")
+set(CPACK_PACKAGE_VERSION_MAJOR "${Tutorial_VERSION_MAJOR}")
+set(CPACK_PACKAGE_VERSION_MINOR "${Tutorial_VERSION_MINOR}")
+set(CPACK_SOURCE_GENERATOR "TGZ")
+include(CPack)
+```
+
+- run command
+
+```cmake
+cpack -G TGZ -C Debug
+```
+

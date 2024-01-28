@@ -4,5 +4,6 @@
         "*.in": "c",
         "string": "cpp",
         "cmath": "cpp"
-    }
+    },
+    "cmake.sourceDirectory": "E:/learn-cmake/Step5"
 }
