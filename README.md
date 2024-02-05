@@ -85,3 +85,118 @@ include(CPack)
 cpack -G TGZ -C Debug
 ```
 
+## Step 10 Selecting Static or Shared Libraries
+
+- [`BUILD_SHARED_LIBS`](https://cmake.org/cmake/help/latest/variable/BUILD_SHARED_LIBS.html#variable:BUILD_SHARED_LIBS) 变量控制add_library()的默认行为，所以只需要在顶层cmakelists.txt中定义这个变量值即可控制所有的子工程lib目标类型
+- 对于windows系统来说，如果生成dll, 还需要在头文件中指明导出函数
+
+```c++
+#if defined(_WIN32)
+#  if defined(EXPORTING_MYMATH)
+#    define DECLSPEC __declspec(dllexport)
+#  else
+#    define DECLSPEC __declspec(dllimport)
+#  endif
+#else // non windows
+#  define DECLSPEC
+#endif
+
+namespace mathfunctions {
+double DECLSPEC sqrt(double x);
+}
+```
+
+编译本dll的时候使用\__declspec(dllexport)，使用dll导入的时候使用__declspec(dllimport)
+
+- 对于linux系统来说，还需要注意[`POSITION_INDEPENDENT_CODE`](https://cmake.org/cmake/help/latest/prop_tgt/POSITION_INDEPENDENT_CODE.html#prop_tgt:POSITION_INDEPENDENT_CODE), 也就是gcc经常用的-fPIC选项
+
+```cm
+set_target_properties(SqrtLibrary PROPERTIES
+                        POSITION_INDEPENDENT_CODE ${BUILD_SHARED_LIBS}
+                        )
+```
+
+## Step 11 Adding Export Configuration
+
+为了让我们的工程能够被find_package()识别使用，需要导出必要的cmake配置文件：
+
+- 在install目标语句中增加EXPORT目标
+
+```cmake
+set(installable_libs MathFunctions tutorial_compiler_flags)
+if(TARGET SqrtLibrary)
+  list(APPEND installable_libs SqrtLibrary)
+endif()
+install(TARGETS ${installable_libs}
+        EXPORT MathFunctionsTargets # 导出MathFunctionsTargets
+        DESTINATION lib)
+# install include headers
+install(FILES MathFunctions.h DESTINATION include)
+```
+
+- 上层cmakelists.txt install增加.cmake安装
+
+```cmake
+install(EXPORT MathFunctionsTargets
+  FILE MathFunctionsTargets.cmake # 自动生成MathFunctionsTargets.cmake
+  DESTINATION lib/cmake/MathFunctions
+)
+
+include(CMakePackageConfigHelpers)
+```
+
+- 头文件目录对install修改为相对目录
+
+```cmake
+target_include_directories(MathFunctions
+                           INTERFACE
+                            $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
+                            $<INSTALL_INTERFACE:include> # 如果是安装后导入，使用相对目录
+                           )
+```
+
+- 生成xxxConfig.cmake供find_package()识别
+
+  1. 新建一个Config.cmake.in文件
+  2. 使用configure_package_config_file
+
+  ```cmake
+  @PACKAGE_INIT@
+  
+  include ( "${CMAKE_CURRENT_LIST_DIR}/MathFunctionsTargets.cmake" )
+  # Config.cmake.in
+  ######################################################################
+  # 顶层cmakelists.txt接
+  include(CMakePackageConfigHelpers)
+   generate the config file that includes the exports
+  configure_package_config_file(${CMAKE_CURRENT_SOURCE_DIR}/Config.cmake.in
+    "${CMAKE_CURRENT_BINARY_DIR}/MathFunctionsConfig.cmake"
+    INSTALL_DESTINATION "lib/cmake/example"
+    NO_SET_AND_CHECK_MACRO
+    NO_CHECK_REQUIRED_COMPONENTS_MACRO
+    )
+  ```
+
+- 生成xxxConfigVersion.cmake
+
+```cmake
+# 顶层cmakelists.txt接
+write_basic_package_version_file(
+  "${CMAKE_CURRENT_BINARY_DIR}/MathFunctionsConfigVersion.cmake"
+  VERSION "${Tutorial_VERSION_MAJOR}.${Tutorial_VERSION_MINOR}"
+  COMPATIBILITY AnyNewerVersion
+)
+```
+
+- 安装xxxConfig.cmake和xxxConfigVersion.cmake
+
+```cmake
+# 顶层cmakelists.txt接
+install(FILES
+  ${CMAKE_CURRENT_BINARY_DIR}/MathFunctionsConfig.cmake
+  ${CMAKE_CURRENT_BINARY_DIR}/MathFunctionsConfigVersion.cmake
+  DESTINATION lib/cmake/MathFunctions
+  )
+```
+
+至此完成；

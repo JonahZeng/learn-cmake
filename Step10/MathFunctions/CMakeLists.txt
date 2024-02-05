@@ -1,5 +1,6 @@
 # add the library that runs
 add_library(MathFunctions MathFunctions.cxx)
+# BUILD_SHARED_LIBS ON means dll or so file
 
 # state that anybody linking to us needs to include the current source dir
 # to find MathFunctions.h, while we don't.
@@ -16,7 +17,7 @@ if(USE_MYMATH)
   include(MakeTable.cmake) # generates Table.h
 
   # library that just does sqrt
-  add_library(SqrtLibrary STATIC
+  add_library(SqrtLibrary
               mysqrt.cxx
               ${CMAKE_CURRENT_BINARY_DIR}/Table.h
               )
