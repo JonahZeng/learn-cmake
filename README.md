@@ -200,3 +200,58 @@ install(FILES
 ```
 
 至此完成；
+
+## Step 12 Packaging Debug and Release
+
+**note**: 仅对unix makefile等single-configuration类型生效，对于multi-configuration比如ninja-multi, visual studio等类型不生效；
+
+首先需要让release和debug生成目标文件使用不同的文件名，通常是添加后缀d表示debug；这里需要用到变量`CMAKE_DEBUG_POSTFIX`;
+
+```CMAKE
+set(CMAKE_DEBUG_POSTFIX d)
+
+add_library(tutorial_compiler_flags INTERFACE)
+```
+
+首先在top-level cmakelists.txt中添加如上定义；
+
+然后，给target添加DEBUG_POSTFIX属性：
+
+```cmake
+add_executable(Tutorial tutorial.cxx)
+set_target_properties(Tutorial PROPERTIES DEBUG_POSTFIX ${CMAKE_DEBUG_POSTFIX})
+
+target_link_libraries(Tutorial PUBLIC MathFunctions tutorial_compiler_flags)
+# 添加版本号
+set_property(TARGET MathFunctions PROPERTY VERSION "1.0.0")
+set_property(TARGET MathFunctions PROPERTY SOVERSION "1")
+```
+
+新建release, debug目录分别生成，编译，安装：
+
+```bash
+cd debug
+cmake -DCMAKE_BUILD_TYPE=Debug ..
+cmake --build .
+cd ../release
+cmake -DCMAKE_BUILD_TYPE=Release ..
+cmake --build .
+```
+
+新建一个MultiCPackConfig.cmake文件，
+
+```cmake
+include("release/CPackConfig.cmake")
+
+set(CPACK_INSTALL_CMAKE_PROJECTS
+    "debug;Tutorial;ALL;/"
+    "release;Tutorial;ALL;/"
+    )
+```
+
+接下来，执行install以后cpack
+
+```bash
+cpack --config MultiCPackConfig.cmake
+```
+
